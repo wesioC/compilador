@@ -28,10 +28,33 @@ void montar_codigo_final(){
 	printf("Arquivo \"out.s\" gerado.\n\n");
 }
 
-void montar_codigo_retorno(int numero){
-	fprintf(f, "    movq    $%d, %%rbx\n", numero);
+void montar_codigo_retorno(){
+	fprintf(f, "    popq    %%rbx\n");
 	fprintf(f, "    movq    $1, %%rax\n");
 	fprintf(f, "    int     $0x80\n\n");
+}
+void montar_codigo_exp(char op){
+	switch(op){
+		case '+':
+			fprintf(f, "    popq    %%rax\n");
+			fprintf(f, "    popq    %%rbx\n");
+			fprintf(f, "    addq    %%rbx, %%rax\n");
+			fprintf(f, "    pushq     %%rax\n\n");
+			break;
+		case '-':
+			fprintf(f, "    popq    %%rax\n");
+			fprintf(f, "    popq    %%rbx\n");
+			fprintf(f, "    subq    %%rbx, %%rax\n");
+			fprintf(f, "    pushq     %%rax\n\n");
+			break;
+		case '*':
+			fprintf(f, "    popq    %%rax\n");
+			fprintf(f, "    popq    %%rbx\n");
+			fprintf(f, "    imulq    %%rbx, %%rax\n");
+			fprintf(f, "    pushq     %%rax\n\n");
+			break;
+	}
+	
 }
 
 void montar_add(int a, int b){
@@ -55,24 +78,26 @@ void montar_mult(int a, int b){
 	fprintf(f, "    movq    $1, %%rax\n");
 	fprintf(f, "    int     $0x80\n\n");
 }
-
+void montar_codigo_empilhar(int a){
+	fprintf(f, "    pushq    $%i\n",a);
+}
 %}
 
 %token INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES RETURN PONTO_E_VIRGULA FECHA_CHAVES ID DESCONHECIDO
 %token MAIS MENOS MULT
 %token NUM
-%left '+' '-'
-%left '*'
+%left MAIS MENOS
+%left MULT
 %%
 programa	: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES {montar_codigo_inicial();} corpo FECHA_CHAVES {montar_codigo_final();} ;
-corpo		: RETURN NUM PONTO_E_VIRGULA {montar_codigo_retorno($2);} corpo
-			| RETURN exp PONTO_E_VIRGULA
+corpo		:  RETURN exp PONTO_E_VIRGULA {montar_codigo_retorno();} corpo
 			|
 			;
-exp         : NUM MAIS NUM {montar_add($1,$3);} exp
-			| NUM MENOS NUM {montar_sub($1,$3);} exp
-			| NUM MULT NUM {montar_mult($1,$3);} exp
-			|
+exp         : exp MAIS exp {montar_codigo_exp('+');}
+			| exp MENOS exp {montar_codigo_exp('-');}
+			| exp MULT exp {montar_codigo_exp('*');}
+			| ABRE_PARENTESES exp FECHA_PARENTESES
+			| NUM {montar_codigo_empilhar($1);}
 			;
 %%
 int main(){
