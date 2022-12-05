@@ -3,29 +3,17 @@
 
 _start:
 
+    pushq    $10
     pushq    $5
-    pushq    $4
-    pushq    $2
-    popq    %rax
-    popq    %rbx
-    subq    %rbx, %rax
-    pushq     %rax
-
-    pushq    $5
-    pushq    $1
-    popq    %rax
-    popq    %rbx
-    subq    %rbx, %rax
-    pushq     %rax
-
-    popq    %rax
-    popq    %rbx
-    imulq    %rbx, %rax
-    pushq     %rax
-
     popq    %rax
     popq    %rbx
     addq    %rbx, %rax
+    pushq     %rax
+
+    pushq    $5
+    popq    %rax
+    popq    %rbx
+    imulq    %rbx, %rax
     pushq     %rax
 
     popq    %rbx

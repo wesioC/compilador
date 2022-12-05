@@ -71,7 +71,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#define TAM 8
+#include <string.h>
+#define TAM 18
+
 
 extern int lin;
 extern int col;
@@ -83,7 +85,7 @@ FILE *f;
 
 
 typedef struct no{
-	char var;
+	char var[25];
 	int dado;
 	struct no *prox;
 }No;
@@ -96,15 +98,15 @@ typedef struct hash_table{
 void mostrar_lista(No **C){
 	No *p;
 	for (p=*C; p!=NULL; p=p->prox){
-		printf("%i ", p->dado);
+		printf("%s = %i ", p->var,p->dado);
 	}
 }
 
-void inserir_lista(No **C, int valor, char var){
+void inserir_lista(No **C, int valor, char var[]){
 	No *novo;
 	novo = (No *)malloc(sizeof(No));
 	novo->dado = valor;
-	novo->var = var;
+	strcpy(novo->var,var);
 	novo->prox = NULL;	
 
 	if (*C == NULL){
@@ -115,25 +117,27 @@ void inserir_lista(No **C, int valor, char var){
 	}
 }
 
-int buscar_valor_lista(No **C, int valor){
+int buscar_valor_lista(No **C, char var[]){
 	No *p;
 	for (p=*C; p!=NULL; p=p->prox){
-		if(valor == p->dado)
-			return 1;
+		if(strcmp(p->var,var) == 0)
+			return p->dado;
 	}
-	return 0;
+	return -999999;
 }
 //##### funções para tabela hash
 int hash(int k){
 	return (k*5)%TAM;
 }
 
-void inserir_tabela_hash(Hash_table *T, int valor, char var){
-	inserir_lista(&T->vet[hash(valor)], valor, var);
+void inserir_tabela_hash(Hash_table *T, int valor, char var[]){
+	int n = strlen(var);
+	inserir_lista(&T->vet[hash(n)], valor, var);
 }
 
-int buscar_valor_tabela_hash(Hash_table *T, int valor){
-	return buscar_valor_lista(&T->vet[hash(valor)], valor);
+int buscar_valor_tabela_hash(Hash_table *T, char var[]){
+	int n = strlen(var);
+	return buscar_valor_lista(&T->vet[hash(n)], var);
 }
 
 void inicializar_tabela(Hash_table *T){
@@ -151,7 +155,7 @@ void mostrar_tabela(Hash_table *T){
 
 /* Geração de código assembly*/
 int yyerror(char *msg){
-	printf("%s (%i, %i) token encontrado: \"%s\"\n", msg, lin, col-yyleng, yytext);
+	printf("%s (%i, %i) Erro: \"%s\"\n", msg, lin, col-yyleng, yytext);
 	exit(0);
 }
 int yylex(void);
@@ -222,8 +226,9 @@ void montar_mult(int a, int b){
 void montar_codigo_empilhar(int a){
 	fprintf(f, "    pushq    $%i\n",a);
 }
+Hash_table T;
 
-#line 227 "comp.tab.c"
+#line 232 "comp.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -262,19 +267,20 @@ enum yysymbol_kind_t
   YYSYMBOL_RETURN = 8,                     /* RETURN  */
   YYSYMBOL_PONTO_E_VIRGULA = 9,            /* PONTO_E_VIRGULA  */
   YYSYMBOL_FECHA_CHAVES = 10,              /* FECHA_CHAVES  */
-  YYSYMBOL_ID = 11,                        /* ID  */
-  YYSYMBOL_DESCONHECIDO = 12,              /* DESCONHECIDO  */
+  YYSYMBOL_DESCONHECIDO = 11,              /* DESCONHECIDO  */
+  YYSYMBOL_IGUAL = 12,                     /* IGUAL  */
   YYSYMBOL_MAIS = 13,                      /* MAIS  */
   YYSYMBOL_MENOS = 14,                     /* MENOS  */
   YYSYMBOL_MULT = 15,                      /* MULT  */
-  YYSYMBOL_NUM = 16,                       /* NUM  */
-  YYSYMBOL_YYACCEPT = 17,                  /* $accept  */
-  YYSYMBOL_programa = 18,                  /* programa  */
-  YYSYMBOL_19_1 = 19,                      /* $@1  */
-  YYSYMBOL_corpo = 20,                     /* corpo  */
-  YYSYMBOL_21_2 = 21,                      /* $@2  */
-  YYSYMBOL_exp = 22,                       /* exp  */
-  YYSYMBOL_var = 23                        /* var  */
+  YYSYMBOL_ID = 16,                        /* ID  */
+  YYSYMBOL_NUM = 17,                       /* NUM  */
+  YYSYMBOL_YYACCEPT = 18,                  /* $accept  */
+  YYSYMBOL_programa = 19,                  /* programa  */
+  YYSYMBOL_20_1 = 20,                      /* $@1  */
+  YYSYMBOL_corpo = 21,                     /* corpo  */
+  YYSYMBOL_22_2 = 22,                      /* $@2  */
+  YYSYMBOL_exp = 23,                       /* exp  */
+  YYSYMBOL_var = 24                        /* var  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -602,19 +608,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   27
+#define YYLAST   30
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  17
+#define YYNTOKENS  18
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  13
+#define YYNRULES  15
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  31
+#define YYNSTATES  34
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   271
+#define YYMAXUTOK   272
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -655,15 +661,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16
+      15,    16,    17
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   165,   165,   165,   166,   166,   167,   168,   170,   171,
-     172,   173,   174,   176
+       0,   174,   174,   174,   175,   175,   176,   177,   179,   180,
+     181,   182,   183,   184,   186,   187
 };
 #endif
 
@@ -681,9 +687,9 @@ static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "INT", "MAIN",
   "ABRE_PARENTESES", "FECHA_PARENTESES", "ABRE_CHAVES", "RETURN",
-  "PONTO_E_VIRGULA", "FECHA_CHAVES", "ID", "DESCONHECIDO", "MAIS", "MENOS",
-  "MULT", "NUM", "$accept", "programa", "$@1", "corpo", "$@2", "exp",
-  "var", YY_NULLPTR
+  "PONTO_E_VIRGULA", "FECHA_CHAVES", "DESCONHECIDO", "IGUAL", "MAIS",
+  "MENOS", "MULT", "ID", "NUM", "$accept", "programa", "$@1", "corpo",
+  "$@2", "exp", "var", YY_NULLPTR
 };
 
 static const char *
@@ -707,10 +713,10 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       0,    -2,     4,     1,   -14,    11,    12,   -14,    15,    13,
-      -5,    16,    18,   -14,    -5,   -14,     7,   -14,    15,    -1,
-     -14,    -5,    -5,    -5,   -14,   -14,    15,    10,    10,   -14,
-     -14
+      -2,     1,     2,    16,   -14,    18,    15,   -14,    17,     7,
+      -5,    19,    21,    14,    -5,   -14,   -14,    -6,   -14,    17,
+      10,     4,   -14,    -5,    -5,    -5,   -14,   -14,   -14,    17,
+      13,    13,   -14,   -14
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -719,21 +725,21 @@ static const yytype_int8 yypact[] =
 static const yytype_int8 yydefact[] =
 {
        0,     0,     0,     0,     1,     0,     0,     2,     7,     0,
-       0,     0,     0,    13,     0,    12,     0,     3,     7,     0,
-       4,     0,     0,     0,     6,    11,     7,     8,     9,    10,
-       5
+       0,     0,     0,    15,     0,    13,    12,     0,     3,     7,
+       0,     0,     4,     0,     0,     0,     6,    14,    11,     7,
+       8,     9,    10,     5
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -14,   -14,   -14,   -11,   -14,   -13,   -14
+     -14,   -14,   -14,   -13,   -14,   -10,   -14
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     8,    11,    26,    16,    12
+       0,     2,     8,    11,    29,    17,    12
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -741,40 +747,42 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      14,    19,     3,     1,     4,    25,     5,    24,    27,    28,
-      29,    15,    21,    22,    23,    30,    20,     6,     9,     7,
-      21,    22,    23,    10,    13,    23,    17,    18
+      14,     1,     4,    22,    21,     3,    26,    23,    24,    25,
+      28,    15,    16,    30,    31,    32,    33,    23,    24,    25,
+       9,     5,     7,    13,     6,    10,    20,    27,    25,    18,
+      19
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,    14,     4,     3,     0,     6,     5,    18,    21,    22,
-      23,    16,    13,    14,    15,    26,     9,     6,     3,     7,
-      13,    14,    15,     8,    11,    15,    10,     9
+       5,     3,     0,     9,    14,     4,    19,    13,    14,    15,
+       6,    16,    17,    23,    24,    25,    29,    13,    14,    15,
+       3,     5,     7,    16,     6,     8,    12,    17,    15,    10,
+       9
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,    18,     4,     0,     5,     6,     7,    19,     3,
-       8,    20,    23,    11,     5,    16,    22,    10,     9,    22,
-       9,    13,    14,    15,    20,     6,    21,    22,    22,    22,
-      20
+       0,     3,    19,     4,     0,     5,     6,     7,    20,     3,
+       8,    21,    24,    16,     5,    16,    17,    23,    10,     9,
+      12,    23,     9,    13,    14,    15,    21,    17,     6,    22,
+      23,    23,    23,    21
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    17,    19,    18,    21,    20,    20,    20,    22,    22,
-      22,    22,    22,    23
+       0,    18,    20,    19,    22,    21,    21,    21,    23,    23,
+      23,    23,    23,    23,    24,    24
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     8,     0,     5,     3,     0,     3,     3,
-       3,     3,     1,     2
+       3,     3,     1,     1,     4,     2
 };
 
 
@@ -1238,55 +1246,67 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 165 "comp.y"
-                                                                        {montar_codigo_inicial();}
-#line 1244 "comp.tab.c"
+#line 174 "comp.y"
+                                                                        {montar_codigo_inicial();inicializar_tabela(&T);}
+#line 1252 "comp.tab.c"
     break;
 
   case 3: /* programa: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES $@1 corpo FECHA_CHAVES  */
-#line 165 "comp.y"
-                                                                                                                      {montar_codigo_final();}
-#line 1250 "comp.tab.c"
+#line 174 "comp.y"
+                                                                                                                                             {montar_codigo_final();}
+#line 1258 "comp.tab.c"
     break;
 
   case 4: /* $@2: %empty  */
-#line 166 "comp.y"
+#line 175 "comp.y"
                                              {montar_codigo_retorno();}
-#line 1256 "comp.tab.c"
+#line 1264 "comp.tab.c"
     break;
 
   case 8: /* exp: exp MAIS exp  */
-#line 170 "comp.y"
+#line 179 "comp.y"
                            {montar_codigo_exp('+');}
-#line 1262 "comp.tab.c"
+#line 1270 "comp.tab.c"
     break;
 
   case 9: /* exp: exp MENOS exp  */
-#line 171 "comp.y"
+#line 180 "comp.y"
                                         {montar_codigo_exp('-');}
-#line 1268 "comp.tab.c"
+#line 1276 "comp.tab.c"
     break;
 
   case 10: /* exp: exp MULT exp  */
-#line 172 "comp.y"
+#line 181 "comp.y"
                                        {montar_codigo_exp('*');}
-#line 1274 "comp.tab.c"
+#line 1282 "comp.tab.c"
     break;
 
   case 12: /* exp: NUM  */
-#line 174 "comp.y"
-                              {montar_codigo_empilhar(yyvsp[0]);}
-#line 1280 "comp.tab.c"
+#line 183 "comp.y"
+                              {montar_codigo_empilhar((yyvsp[0].inteiro));}
+#line 1288 "comp.tab.c"
     break;
 
-  case 13: /* var: INT ID  */
-#line 176 "comp.y"
-                                 {Hash_table T;inicializar_tabela(&T);inserir_tabela_hash(&T, 0,yyvsp[0]);printf("Tabela hash.\n");mostrar_tabela(&T);}
-#line 1286 "comp.tab.c"
+  case 13: /* exp: ID  */
+#line 184 "comp.y"
+                             {int id = buscar_valor_tabela_hash(&T,(yyvsp[0].string)); if(id !=-999999){montar_codigo_empilhar(id);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[0].string));exit(0);}}
+#line 1294 "comp.tab.c"
+    break;
+
+  case 14: /* var: INT ID IGUAL NUM  */
+#line 186 "comp.y"
+                                          {inserir_tabela_hash(&T,(yyvsp[0].inteiro),(yyvsp[-2].string));}
+#line 1300 "comp.tab.c"
+    break;
+
+  case 15: /* var: INT ID  */
+#line 187 "comp.y"
+                                 {if (buscar_valor_tabela_hash(&T,(yyvsp[0].string))==-999999){inserir_tabela_hash(&T,0,(yyvsp[0].string));}else{printf("(%i, %i) Erro: \"Variavel declarada mais de uma vez - %s\"\n", lin, col-yyleng,(yyvsp[0].string)); exit(0);}}
+#line 1306 "comp.tab.c"
     break;
 
 
-#line 1290 "comp.tab.c"
+#line 1310 "comp.tab.c"
 
       default: break;
     }
@@ -1479,9 +1499,12 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 178 "comp.y"
+#line 189 "comp.y"
 
 int main(){
+
 	yyparse();
 	printf("Programa OK.\n");
+	printf("Tabela hash.\n");
+	mostrar_tabela(&T);
 }

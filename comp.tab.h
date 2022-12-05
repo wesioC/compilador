@@ -62,19 +62,30 @@ extern int yydebug;
     RETURN = 263,                  /* RETURN  */
     PONTO_E_VIRGULA = 264,         /* PONTO_E_VIRGULA  */
     FECHA_CHAVES = 265,            /* FECHA_CHAVES  */
-    ID = 266,                      /* ID  */
-    DESCONHECIDO = 267,            /* DESCONHECIDO  */
+    DESCONHECIDO = 266,            /* DESCONHECIDO  */
+    IGUAL = 267,                   /* IGUAL  */
     MAIS = 268,                    /* MAIS  */
     MENOS = 269,                   /* MENOS  */
     MULT = 270,                    /* MULT  */
-    NUM = 271                      /* NUM  */
+    ID = 271,                      /* ID  */
+    NUM = 272                      /* NUM  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 162 "comp.y"
+
+char *string;
+int inteiro;
+
+#line 86 "comp.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
