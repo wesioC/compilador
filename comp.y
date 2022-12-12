@@ -109,6 +109,9 @@ void montar_codigo_retorno(){
 	fprintf(f, "    movq    $1, %%rax\n");
 	fprintf(f, "    int     $0x80\n\n");
 }
+void declarar_id(){
+
+}
 void montar_codigo_exp(char op){
 	switch(op){
 		case '+':
@@ -132,32 +135,11 @@ void montar_codigo_exp(char op){
 	}
 	
 }
-
-void montar_add(int a, int b){
-	fprintf(f, "    movq    $%d, %%rax\n", a);
-	fprintf(f, "    movq    $%d, %%rbx\n", b);
-	fprintf(f, "    addq    %%rax, %%rbx\n");
-	fprintf(f, "    movq    $1, %%rax\n");
-	fprintf(f, "    int     $0x80\n\n");
-}
-
-void montar_sub(int a, int b){
-	fprintf(f, "    movq    $%d, %%rbx\n", a);
-	fprintf(f, "    subq    $%d, %%rbx\n", b);
-	fprintf(f, "    movq    $1, %%rax\n");
-	fprintf(f, "    int     $0x80\n\n");
-}
-
-void montar_mult(int a, int b){
-	fprintf(f, "    movq    $%d, %%rbx\n", a);
-	fprintf(f, "    mult    $%d, %%rbx\n", b);
-	fprintf(f, "    movq    $1, %%rax\n");
-	fprintf(f, "    int     $0x80\n\n");
-}
 void montar_codigo_empilhar(int a){
 	fprintf(f, "    pushq    $%i\n",a);
 }
 Hash_table T;
+int cont = 0;
 %}
 %union {
 char *string;
@@ -173,7 +155,7 @@ int inteiro;
 
 programa	: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES {montar_codigo_inicial();inicializar_tabela(&T);} corpo FECHA_CHAVES {montar_codigo_final();} ;
 corpo		: RETURN exp PONTO_E_VIRGULA {montar_codigo_retorno();} corpo
-			| var PONTO_E_VIRGULA corpo
+			| var {montar_codigo_retorno();} corpo
 			|
 			;
 exp         : exp MAIS exp {montar_codigo_exp('+');}
@@ -181,10 +163,12 @@ exp         : exp MAIS exp {montar_codigo_exp('+');}
 			| exp MULT exp {montar_codigo_exp('*');}
 			| ABRE_PARENTESES exp FECHA_PARENTESES
 			| NUM {montar_codigo_empilhar($1);}
-			| ID {int id = buscar_valor_tabela_hash(&T,$1); if(id !=-999999){montar_codigo_empilhar(id);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);}}
+			| ID 
 			;
-var			: INT ID IGUAL NUM{inserir_tabela_hash(&T,$4,$2);}
-			| INT ID {if (buscar_valor_tabela_hash(&T,$2)==-999999){inserir_tabela_hash(&T,0,$2);}else{printf("(%i, %i) Erro: \"Variavel declarada mais de uma vez - %s\"\n", lin, col-yyleng,$2); exit(0);}}
+var			: INT ID IGUAL NUM PONTO_E_VIRGULA {cont++;montar_codigo_empilhar($4);}
+			| INT ID PONTO_E_VIRGULA {cont++; montar_codigo_empilhar(0);}
+			| ID IGUAL NUM PONTO_E_VIRGULA {montar_codigo_empilhar($3);}
+			| ID IGUAL ID PONTO_E_VIRGULA var{montar_codigo_empilhar(0);}
 			;
 %%
 int main(){
