@@ -6,5 +6,5 @@ gcc comp.tab.c lex.yy.c -lfl -o comp
 
 as out.s -o out.o
 ld -s -o out out.o
-./out
+./out 
 echo $?
