@@ -54,7 +54,7 @@ int buscar_valor_lista(No **C, char var[]){
 		if(strcmp(p->var,var) == 0)
 			return p->dado;
 	}
-	return -999999;
+	return 0;
 }
 //##### funções para tabela hash
 int hash(int k){
@@ -62,12 +62,12 @@ int hash(int k){
 }
 
 void inserir_tabela_hash(Hash_table *T, int valor, char var[]){
-	int n = strlen(var);
+	int n = var[0];
 	inserir_lista(&T->vet[hash(n)], valor, var);
 }
 
 int buscar_valor_tabela_hash(Hash_table *T, char var[]){
-	int n = strlen(var);
+	int n = var[0];
 	return buscar_valor_lista(&T->vet[hash(n)], var);
 }
 
@@ -95,7 +95,9 @@ void montar_codigo_inicial(){
 	f = fopen("out.s","w+");
 	fprintf(f, ".text\n");
 	fprintf(f, "    .global _start\n\n");
-    	fprintf(f, "_start:\n\n");
+    fprintf(f, "_start:\n\n");
+	fprintf(f, "    pushq	%%rbp\n");
+	fprintf(f, "    movq	%%rsp, %%rbp\n");
 }
 
 void montar_codigo_final(){
@@ -109,9 +111,12 @@ void montar_codigo_retorno(){
 	fprintf(f, "    movq    $1, %%rax\n");
 	fprintf(f, "    int     $0x80\n\n");
 }
-void declarar_id(){
 
+void declarar_id(int d, int num){
+	fprintf(f, "    movq	$%d, -%d(%%rbp)\n",num,d);
+	
 }
+
 void montar_codigo_exp(char op){
 	switch(op){
 		case '+':
@@ -138,6 +143,11 @@ void montar_codigo_exp(char op){
 void montar_codigo_empilhar(int a){
 	fprintf(f, "    pushq    $%i\n",a);
 }
+void montar_id_empilhar(int a, int b){
+	/*d -> Deslocamento*/
+	int d = a*b;
+	fprintf(f, "    pushq    -%i(%%rbp)\n",d);
+}
 Hash_table T;
 int cont = 0;
 %}
@@ -155,7 +165,7 @@ int inteiro;
 
 programa	: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES {montar_codigo_inicial();inicializar_tabela(&T);} corpo FECHA_CHAVES {montar_codigo_final();} ;
 corpo		: RETURN exp PONTO_E_VIRGULA {montar_codigo_retorno();} corpo
-			| var {montar_codigo_retorno();} corpo
+			| var corpo
 			|
 			;
 exp         : exp MAIS exp {montar_codigo_exp('+');}
@@ -163,9 +173,9 @@ exp         : exp MAIS exp {montar_codigo_exp('+');}
 			| exp MULT exp {montar_codigo_exp('*');}
 			| ABRE_PARENTESES exp FECHA_PARENTESES
 			| NUM {montar_codigo_empilhar($1);}
-			| ID 
+			| ID  {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){montar_id_empilhar(d,sizeof(int));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);}}
 			;
-var			: INT ID IGUAL NUM PONTO_E_VIRGULA {cont++;montar_codigo_empilhar($4);}
+var			: INT ID IGUAL NUM PONTO_E_VIRGULA {cont++;declarar_id(sizeof(int)*cont,$4);inserir_tabela_hash(&T,cont,$2);}
 			| INT ID PONTO_E_VIRGULA {cont++; montar_codigo_empilhar(0);}
 			| ID IGUAL NUM PONTO_E_VIRGULA {montar_codigo_empilhar($3);}
 			| ID IGUAL ID PONTO_E_VIRGULA var{montar_codigo_empilhar(0);}
