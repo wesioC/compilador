@@ -72,7 +72,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define TAM 18
+#define TAM 26
 
 
 extern int lin;
@@ -127,7 +127,7 @@ int buscar_valor_lista(No **C, char var[]){
 }
 //##### funções para tabela hash
 int hash(int k){
-	return (k*5)%TAM;
+	return (k*101)%TAM;
 }
 
 void inserir_tabela_hash(Hash_table *T, int valor, char var[]){
@@ -177,13 +177,24 @@ void montar_codigo_final(){
 
 void montar_codigo_retorno(){
 	fprintf(f, "    popq    %%rbx\n");
-	fprintf(f, "    movq    $1, %%rax\n");
+	fprintf(f, "    movl    $1, %%eax\n");
 	fprintf(f, "    int     $0x80\n\n");
 }
 
 void declarar_id(int d, int num){
-	fprintf(f, "    movq	$%d, -%d(%%rbp)\n",num,d);
-	
+	fprintf(f, "    movl	$%d, -%d(%%rbp)\n",num,d);
+}
+void declarar_id_exp(int d){
+	fprintf(f, "    popq    %%rax\n");
+	fprintf(f, "    movl	%%eax, -%d(%%rbp)\n\n",d);
+}
+
+void atribuir_id_id(int a, int b){
+	a = a*sizeof(int);
+	b = b*sizeof(int);
+	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",b);
+	fprintf(f, "    movl	 %%eax, -%d(%%rbp)\n",a);
+	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",a);
 }
 
 void montar_codigo_exp(char op){
@@ -191,19 +202,19 @@ void montar_codigo_exp(char op){
 		case '+':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    addq    %%rbx, %%rax\n");
+			fprintf(f, "    addl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '-':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    subq    %%rbx, %%rax\n");
+			fprintf(f, "    subl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '*':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    imulq    %%rbx, %%rax\n");
+			fprintf(f, "    imull    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 	}
@@ -213,14 +224,15 @@ void montar_codigo_empilhar(int a){
 	fprintf(f, "    pushq    $%i\n",a);
 }
 void montar_id_empilhar(int a, int b){
-	/*d -> Deslocamneto*/
+	/*d -> Deslocamento*/
 	int d = a*b;
 	fprintf(f, "    pushq    -%i(%%rbp)\n",d);
 }
+
 Hash_table T;
 int cont = 0;
 
-#line 224 "comp.tab.c"
+#line 236 "comp.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -600,16 +612,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   41
+#define YYLAST   45
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  18
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  17
+#define YYNRULES  19
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  42
+#define YYNSTATES  45
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   272
@@ -660,8 +672,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   166,   166,   166,   167,   167,   168,   169,   171,   172,
-     173,   174,   175,   176,   178,   179,   180,   181
+       0,   178,   178,   178,   179,   179,   180,   181,   183,   184,
+     185,   186,   187,   188,   190,   191,   192,   193,   194,   195
 };
 #endif
 
@@ -705,11 +717,11 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       2,     7,    25,    24,   -15,    26,    23,   -15,    -1,    15,
-       1,    21,    27,    -1,    12,     1,   -15,   -15,    -5,     6,
-     -15,   -15,   -15,    17,    13,   -15,     1,     1,     1,    29,
-      30,    31,   -15,    -1,    20,    20,   -15,     0,   -15,   -15,
-     -15,   -15
+       0,     7,     4,    16,   -15,    21,    30,   -15,    -1,    12,
+       1,    26,    31,    -1,    27,     1,   -15,   -15,    17,     3,
+     -15,   -15,   -15,    -7,    10,   -15,     1,     1,     1,    33,
+      34,    20,    35,    36,   -15,    -1,    25,    25,   -15,   -15,
+     -15,   -15,   -15,   -15,   -15
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -719,21 +731,21 @@ static const yytype_int8 yydefact[] =
 {
        0,     0,     0,     0,     1,     0,     0,     2,     7,     0,
        0,     0,     0,     7,     0,     0,    13,    12,     0,     0,
-       3,     6,    15,     0,     0,     4,     0,     0,     0,     0,
-       0,     0,    11,     7,     8,     9,    10,     0,    16,    14,
-       5,    17
+       3,     6,    15,     0,     0,     4,     0,     0,     0,    13,
+      12,     0,     0,     0,    11,     7,     8,     9,    10,    17,
+      16,    19,    18,    14,     5
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -15,   -15,   -15,   -13,   -15,   -14,     4
+     -15,   -15,   -15,   -13,   -15,   -14,   -15
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     8,    12,    33,    18,    13
+       0,     2,     8,    12,    35,    18,    13
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -741,20 +753,20 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      21,    24,     9,     9,    25,     1,    15,    10,    26,    27,
-      28,     3,    34,    35,    36,    11,    11,    16,    17,    32,
-      40,    22,    29,    30,    23,     4,    26,    27,    28,     5,
-       7,    14,     6,    19,    31,    28,     0,    20,    37,    38,
-      39,    41
+      21,    24,     9,     1,     4,    31,    15,    10,    15,    32,
+      33,     3,    36,    37,    38,    11,    34,    16,    17,    29,
+      30,     5,    44,    26,    27,    28,    25,     6,    14,    41,
+      26,    27,    28,    26,    27,    28,    22,     7,    19,    23,
+      28,    20,    39,    40,    42,    43
 };
 
 static const yytype_int8 yycheck[] =
 {
-      13,    15,     3,     3,     9,     3,     5,     8,    13,    14,
-      15,     4,    26,    27,    28,    16,    16,    16,    17,     6,
-      33,     9,    16,    17,    12,     0,    13,    14,    15,     5,
-       7,    16,     6,    12,    17,    15,    -1,    10,     9,     9,
-       9,    37
+      13,    15,     3,     3,     0,    19,     5,     8,     5,    16,
+      17,     4,    26,    27,    28,    16,     6,    16,    17,    16,
+      17,     5,    35,    13,    14,    15,     9,     6,    16,     9,
+      13,    14,    15,    13,    14,    15,     9,     7,    12,    12,
+      15,    10,     9,     9,     9,     9
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -764,22 +776,22 @@ static const yytype_int8 yystos[] =
        0,     3,    19,     4,     0,     5,     6,     7,    20,     3,
        8,    16,    21,    24,    16,     5,    16,    17,    23,    12,
       10,    21,     9,    12,    23,     9,    13,    14,    15,    16,
-      17,    17,     6,    22,    23,    23,    23,     9,     9,     9,
-      21,    24
+      17,    23,    16,    17,     6,    22,    23,    23,    23,     9,
+       9,     9,     9,     9,    21
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
        0,    18,    20,    19,    22,    21,    21,    21,    23,    23,
-      23,    23,    23,    23,    24,    24,    24,    24
+      23,    23,    23,    23,    24,    24,    24,    24,    24,    24
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     8,     0,     5,     2,     0,     3,     3,
-       3,     3,     1,     1,     5,     3,     4,     5
+       3,     3,     1,     1,     5,     3,     4,     4,     5,     4
 };
 
 
@@ -1243,79 +1255,91 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 166 "comp.y"
+#line 178 "comp.y"
                                                                         {montar_codigo_inicial();inicializar_tabela(&T);}
-#line 1249 "comp.tab.c"
-    break;
-
-  case 3: /* programa: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES $@1 corpo FECHA_CHAVES  */
-#line 166 "comp.y"
-                                                                                                                                             {montar_codigo_final();}
-#line 1255 "comp.tab.c"
-    break;
-
-  case 4: /* $@2: %empty  */
-#line 167 "comp.y"
-                                             {montar_codigo_retorno();}
 #line 1261 "comp.tab.c"
     break;
 
-  case 8: /* exp: exp MAIS exp  */
-#line 171 "comp.y"
-                           {montar_codigo_exp('+');}
+  case 3: /* programa: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES $@1 corpo FECHA_CHAVES  */
+#line 178 "comp.y"
+                                                                                                                                             {montar_codigo_final();}
 #line 1267 "comp.tab.c"
     break;
 
-  case 9: /* exp: exp MENOS exp  */
-#line 172 "comp.y"
-                                        {montar_codigo_exp('-');}
+  case 4: /* $@2: %empty  */
+#line 179 "comp.y"
+                                             {montar_codigo_retorno();}
 #line 1273 "comp.tab.c"
     break;
 
-  case 10: /* exp: exp MULT exp  */
-#line 173 "comp.y"
-                                       {montar_codigo_exp('*');}
+  case 8: /* exp: exp MAIS exp  */
+#line 183 "comp.y"
+                           {montar_codigo_exp('+');}
 #line 1279 "comp.tab.c"
     break;
 
-  case 12: /* exp: NUM  */
-#line 175 "comp.y"
-                              {montar_codigo_empilhar((yyvsp[0].inteiro));}
+  case 9: /* exp: exp MENOS exp  */
+#line 184 "comp.y"
+                                        {montar_codigo_exp('-');}
 #line 1285 "comp.tab.c"
     break;
 
-  case 13: /* exp: ID  */
-#line 176 "comp.y"
-                              {int d = buscar_valor_tabela_hash(&T,(yyvsp[0].string));if(d!=0){montar_id_empilhar(d,sizeof(int));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[0].string));exit(0);}}
+  case 10: /* exp: exp MULT exp  */
+#line 185 "comp.y"
+                                       {montar_codigo_exp('*');}
 #line 1291 "comp.tab.c"
     break;
 
-  case 14: /* var: INT ID IGUAL NUM PONTO_E_VIRGULA  */
-#line 178 "comp.y"
-                                                           {cont++;declarar_id(sizeof(int)*cont,(yyvsp[-1].inteiro));inserir_tabela_hash(&T,cont,(yyvsp[-3].string));}
+  case 12: /* exp: NUM  */
+#line 187 "comp.y"
+                              {montar_codigo_empilhar((yyvsp[0].inteiro));}
 #line 1297 "comp.tab.c"
     break;
 
-  case 15: /* var: INT ID PONTO_E_VIRGULA  */
-#line 179 "comp.y"
-                                                 {cont++; montar_codigo_empilhar(0);}
+  case 13: /* exp: ID  */
+#line 188 "comp.y"
+                              {int d = buscar_valor_tabela_hash(&T,(yyvsp[0].string));if(d!=0){montar_id_empilhar(d,sizeof(int));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[0].string));exit(0);}}
 #line 1303 "comp.tab.c"
     break;
 
-  case 16: /* var: ID IGUAL NUM PONTO_E_VIRGULA  */
-#line 180 "comp.y"
-                                                       {montar_codigo_empilhar((yyvsp[-1].inteiro));}
+  case 14: /* var: INT ID IGUAL NUM PONTO_E_VIRGULA  */
+#line 190 "comp.y"
+                                                           {cont++;declarar_id(sizeof(int)*cont,(yyvsp[-1].inteiro));inserir_tabela_hash(&T,cont,(yyvsp[-3].string));}
 #line 1309 "comp.tab.c"
     break;
 
-  case 17: /* var: ID IGUAL ID PONTO_E_VIRGULA var  */
-#line 181 "comp.y"
-                                                         {montar_codigo_empilhar(0);}
+  case 15: /* var: INT ID PONTO_E_VIRGULA  */
+#line 191 "comp.y"
+                                                 {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,(yyvsp[-1].string));}
 #line 1315 "comp.tab.c"
     break;
 
+  case 16: /* var: ID IGUAL NUM PONTO_E_VIRGULA  */
+#line 192 "comp.y"
+                                                       {int d = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));if(d!=0){declarar_id(sizeof(int)*d,(yyvsp[-1].inteiro));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
+#line 1321 "comp.tab.c"
+    break;
 
-#line 1319 "comp.tab.c"
+  case 17: /* var: ID IGUAL ID PONTO_E_VIRGULA  */
+#line 193 "comp.y"
+                                                     {int a = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));int b = buscar_valor_tabela_hash(&T,(yyvsp[-1].string));if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
+#line 1327 "comp.tab.c"
+    break;
+
+  case 18: /* var: INT ID IGUAL ID PONTO_E_VIRGULA  */
+#line 194 "comp.y"
+                                                         {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,(yyvsp[-3].string));int a = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));int b = buscar_valor_tabela_hash(&T,(yyvsp[-1].string));if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
+#line 1333 "comp.tab.c"
+    break;
+
+  case 19: /* var: ID IGUAL exp PONTO_E_VIRGULA  */
+#line 195 "comp.y"
+                                                       {int d = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));if(d!=0){declarar_id_exp(sizeof(int)*d);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
+#line 1339 "comp.tab.c"
+    break;
+
+
+#line 1343 "comp.tab.c"
 
       default: break;
     }
@@ -1508,7 +1532,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 183 "comp.y"
+#line 198 "comp.y"
 
 int main(){
 

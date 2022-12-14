@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define TAM 18
+#define TAM 26
 
 
 extern int lin;
@@ -58,7 +58,7 @@ int buscar_valor_lista(No **C, char var[]){
 }
 //##### funções para tabela hash
 int hash(int k){
-	return (k*5)%TAM;
+	return (k*101)%TAM;
 }
 
 void inserir_tabela_hash(Hash_table *T, int valor, char var[]){
@@ -108,13 +108,24 @@ void montar_codigo_final(){
 
 void montar_codigo_retorno(){
 	fprintf(f, "    popq    %%rbx\n");
-	fprintf(f, "    movq    $1, %%rax\n");
+	fprintf(f, "    movl    $1, %%eax\n");
 	fprintf(f, "    int     $0x80\n\n");
 }
 
 void declarar_id(int d, int num){
-	fprintf(f, "    movq	$%d, -%d(%%rbp)\n",num,d);
-	
+	fprintf(f, "    movl	$%d, -%d(%%rbp)\n",num,d);
+}
+void declarar_id_exp(int d){
+	fprintf(f, "    popq    %%rax\n");
+	fprintf(f, "    movl	%%eax, -%d(%%rbp)\n\n",d);
+}
+
+void atribuir_id_id(int a, int b){
+	a = a*sizeof(int);
+	b = b*sizeof(int);
+	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",b);
+	fprintf(f, "    movl	 %%eax, -%d(%%rbp)\n",a);
+	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",a);
 }
 
 void montar_codigo_exp(char op){
@@ -122,19 +133,19 @@ void montar_codigo_exp(char op){
 		case '+':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    addq    %%rbx, %%rax\n");
+			fprintf(f, "    addl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '-':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    subq    %%rbx, %%rax\n");
+			fprintf(f, "    subl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '*':
 			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
-			fprintf(f, "    imulq    %%rbx, %%rax\n");
+			fprintf(f, "    imull    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 	}
@@ -148,6 +159,7 @@ void montar_id_empilhar(int a, int b){
 	int d = a*b;
 	fprintf(f, "    pushq    -%i(%%rbp)\n",d);
 }
+
 Hash_table T;
 int cont = 0;
 %}
@@ -176,10 +188,13 @@ exp         : exp MAIS exp {montar_codigo_exp('+');}
 			| ID  {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){montar_id_empilhar(d,sizeof(int));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);}}
 			;
 var			: INT ID IGUAL NUM PONTO_E_VIRGULA {cont++;declarar_id(sizeof(int)*cont,$4);inserir_tabela_hash(&T,cont,$2);}
-			| INT ID PONTO_E_VIRGULA {cont++; montar_codigo_empilhar(0);}
-			| ID IGUAL NUM PONTO_E_VIRGULA {montar_codigo_empilhar($3);}
-			| ID IGUAL ID PONTO_E_VIRGULA var{montar_codigo_empilhar(0);}
+			| INT ID PONTO_E_VIRGULA {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,$2);}
+			| ID IGUAL NUM PONTO_E_VIRGULA {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){declarar_id(sizeof(int)*d,$3);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
+			| ID IGUAL ID PONTO_E_VIRGULA{int a = buscar_valor_tabela_hash(&T,$1);int b = buscar_valor_tabela_hash(&T,$3);if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
+			| INT ID IGUAL ID PONTO_E_VIRGULA{cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,$2);int a = buscar_valor_tabela_hash(&T,$2);int b = buscar_valor_tabela_hash(&T,$4);if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$2);exit(0);};}
+			| ID IGUAL exp PONTO_E_VIRGULA {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){declarar_id_exp(sizeof(int)*d);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
 			;
+
 %%
 int main(){
 

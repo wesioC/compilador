@@ -1,5 +1,6 @@
-int main(){
-    int x = 10;
-    int y = 11;
-    return y + x;
+int main() {
+   int x; 
+   int y = 2;
+   x = y * 2;
+   return y+x;
 }
