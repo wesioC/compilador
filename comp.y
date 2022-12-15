@@ -113,11 +113,13 @@ void montar_codigo_retorno(){
 }
 
 void declarar_id(int d, int num){
+	fprintf(f, "    subq    $4, %%rsp\n");
 	fprintf(f, "    movl	$%d, -%d(%%rbp)\n",num,d);
 }
 void declarar_id_exp(int d){
 	fprintf(f, "    popq    %%rax\n");
 	fprintf(f, "    movl	%%eax, -%d(%%rbp)\n\n",d);
+	
 }
 
 void atribuir_id_id(int a, int b){
@@ -137,8 +139,8 @@ void montar_codigo_exp(char op){
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '-':
-			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
+			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    subl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;

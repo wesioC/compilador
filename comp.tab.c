@@ -182,11 +182,13 @@ void montar_codigo_retorno(){
 }
 
 void declarar_id(int d, int num){
+	fprintf(f, "    subq    $4, %%rsp\n");
 	fprintf(f, "    movl	$%d, -%d(%%rbp)\n",num,d);
 }
 void declarar_id_exp(int d){
 	fprintf(f, "    popq    %%rax\n");
 	fprintf(f, "    movl	%%eax, -%d(%%rbp)\n\n",d);
+	
 }
 
 void atribuir_id_id(int a, int b){
@@ -206,8 +208,8 @@ void montar_codigo_exp(char op){
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
 		case '-':
-			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    popq    %%rbx\n");
+			fprintf(f, "    popq    %%rax\n");
 			fprintf(f, "    subl    %%ebx, %%eax\n");
 			fprintf(f, "    pushq     %%rax\n\n");
 			break;
@@ -232,7 +234,7 @@ void montar_id_empilhar(int a, int b){
 Hash_table T;
 int cont = 0;
 
-#line 236 "comp.tab.c"
+#line 238 "comp.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -672,8 +674,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   178,   178,   178,   179,   179,   180,   181,   183,   184,
-     185,   186,   187,   188,   190,   191,   192,   193,   194,   195
+       0,   180,   180,   180,   181,   181,   182,   183,   185,   186,
+     187,   188,   189,   190,   192,   193,   194,   195,   196,   197
 };
 #endif
 
@@ -1255,91 +1257,91 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 178 "comp.y"
+#line 180 "comp.y"
                                                                         {montar_codigo_inicial();inicializar_tabela(&T);}
-#line 1261 "comp.tab.c"
+#line 1263 "comp.tab.c"
     break;
 
   case 3: /* programa: INT MAIN ABRE_PARENTESES FECHA_PARENTESES ABRE_CHAVES $@1 corpo FECHA_CHAVES  */
-#line 178 "comp.y"
+#line 180 "comp.y"
                                                                                                                                              {montar_codigo_final();}
-#line 1267 "comp.tab.c"
+#line 1269 "comp.tab.c"
     break;
 
   case 4: /* $@2: %empty  */
-#line 179 "comp.y"
+#line 181 "comp.y"
                                              {montar_codigo_retorno();}
-#line 1273 "comp.tab.c"
+#line 1275 "comp.tab.c"
     break;
 
   case 8: /* exp: exp MAIS exp  */
-#line 183 "comp.y"
+#line 185 "comp.y"
                            {montar_codigo_exp('+');}
-#line 1279 "comp.tab.c"
+#line 1281 "comp.tab.c"
     break;
 
   case 9: /* exp: exp MENOS exp  */
-#line 184 "comp.y"
+#line 186 "comp.y"
                                         {montar_codigo_exp('-');}
-#line 1285 "comp.tab.c"
+#line 1287 "comp.tab.c"
     break;
 
   case 10: /* exp: exp MULT exp  */
-#line 185 "comp.y"
+#line 187 "comp.y"
                                        {montar_codigo_exp('*');}
-#line 1291 "comp.tab.c"
+#line 1293 "comp.tab.c"
     break;
 
   case 12: /* exp: NUM  */
-#line 187 "comp.y"
+#line 189 "comp.y"
                               {montar_codigo_empilhar((yyvsp[0].inteiro));}
-#line 1297 "comp.tab.c"
+#line 1299 "comp.tab.c"
     break;
 
   case 13: /* exp: ID  */
-#line 188 "comp.y"
+#line 190 "comp.y"
                               {int d = buscar_valor_tabela_hash(&T,(yyvsp[0].string));if(d!=0){montar_id_empilhar(d,sizeof(int));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[0].string));exit(0);}}
-#line 1303 "comp.tab.c"
+#line 1305 "comp.tab.c"
     break;
 
   case 14: /* var: INT ID IGUAL NUM PONTO_E_VIRGULA  */
-#line 190 "comp.y"
+#line 192 "comp.y"
                                                            {cont++;declarar_id(sizeof(int)*cont,(yyvsp[-1].inteiro));inserir_tabela_hash(&T,cont,(yyvsp[-3].string));}
-#line 1309 "comp.tab.c"
+#line 1311 "comp.tab.c"
     break;
 
   case 15: /* var: INT ID PONTO_E_VIRGULA  */
-#line 191 "comp.y"
+#line 193 "comp.y"
                                                  {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,(yyvsp[-1].string));}
-#line 1315 "comp.tab.c"
+#line 1317 "comp.tab.c"
     break;
 
   case 16: /* var: ID IGUAL NUM PONTO_E_VIRGULA  */
-#line 192 "comp.y"
+#line 194 "comp.y"
                                                        {int d = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));if(d!=0){declarar_id(sizeof(int)*d,(yyvsp[-1].inteiro));}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
-#line 1321 "comp.tab.c"
+#line 1323 "comp.tab.c"
     break;
 
   case 17: /* var: ID IGUAL ID PONTO_E_VIRGULA  */
-#line 193 "comp.y"
+#line 195 "comp.y"
                                                      {int a = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));int b = buscar_valor_tabela_hash(&T,(yyvsp[-1].string));if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
-#line 1327 "comp.tab.c"
+#line 1329 "comp.tab.c"
     break;
 
   case 18: /* var: INT ID IGUAL ID PONTO_E_VIRGULA  */
-#line 194 "comp.y"
+#line 196 "comp.y"
                                                          {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,(yyvsp[-3].string));int a = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));int b = buscar_valor_tabela_hash(&T,(yyvsp[-1].string));if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
-#line 1333 "comp.tab.c"
+#line 1335 "comp.tab.c"
     break;
 
   case 19: /* var: ID IGUAL exp PONTO_E_VIRGULA  */
-#line 195 "comp.y"
+#line 197 "comp.y"
                                                        {int d = buscar_valor_tabela_hash(&T,(yyvsp[-3].string));if(d!=0){declarar_id_exp(sizeof(int)*d);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,(yyvsp[-3].string));exit(0);};}
-#line 1339 "comp.tab.c"
+#line 1341 "comp.tab.c"
     break;
 
 
-#line 1343 "comp.tab.c"
+#line 1345 "comp.tab.c"
 
       default: break;
     }
@@ -1532,7 +1534,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 198 "comp.y"
+#line 200 "comp.y"
 
 int main(){
 
