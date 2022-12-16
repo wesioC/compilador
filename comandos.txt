@@ -1,0 +1,8 @@
+chmod +x criar_ass.sh
+sudo ./criar_ass.sh
+
+chmod +x rodar_ass.sh
+sudo ./rodar_ass.sh
+
+chmod +x teste_rapido.sh
+sudo ./teste_rapido.sh

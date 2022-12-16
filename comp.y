@@ -114,7 +114,7 @@ void montar_codigo_retorno(){
 
 void declarar_id(int d, int num){
 	fprintf(f, "    subq    $4, %%rsp\n");
-	fprintf(f, "    movl	$%d, -%d(%%rbp)\n",num,d);
+	fprintf(f, "    movl	$%d, -%d(%%rbp)\n\n",num,d);
 }
 void declarar_id_exp(int d){
 	fprintf(f, "    popq    %%rax\n");
@@ -127,7 +127,7 @@ void atribuir_id_id(int a, int b){
 	b = b*sizeof(int);
 	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",b);
 	fprintf(f, "    movl	 %%eax, -%d(%%rbp)\n",a);
-	fprintf(f, "    movl	-%d(%%rbp), %%eax\n",a);
+	fprintf(f, "    movl	-%d(%%rbp), %%eax\n\n",a);
 }
 
 void montar_codigo_exp(char op){
@@ -191,17 +191,14 @@ exp         : exp MAIS exp {montar_codigo_exp('+');}
 			;
 var			: INT ID IGUAL NUM PONTO_E_VIRGULA {cont++;declarar_id(sizeof(int)*cont,$4);inserir_tabela_hash(&T,cont,$2);}
 			| INT ID PONTO_E_VIRGULA {cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,$2);}
-			| ID IGUAL NUM PONTO_E_VIRGULA {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){declarar_id(sizeof(int)*d,$3);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
-			| ID IGUAL ID PONTO_E_VIRGULA{int a = buscar_valor_tabela_hash(&T,$1);int b = buscar_valor_tabela_hash(&T,$3);if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
 			| INT ID IGUAL ID PONTO_E_VIRGULA{cont++;declarar_id(sizeof(int)*cont,0);inserir_tabela_hash(&T,cont,$2);int a = buscar_valor_tabela_hash(&T,$2);int b = buscar_valor_tabela_hash(&T,$4);if(a!=0 && b!=0){atribuir_id_id(a,b);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$2);exit(0);};}
 			| ID IGUAL exp PONTO_E_VIRGULA {int d = buscar_valor_tabela_hash(&T,$1);if(d!=0){declarar_id_exp(sizeof(int)*d);}else{printf("(%i, %i) Erro: \"Variavel não declarada - %s\"\n", lin, col-yyleng,$1);exit(0);};}
 			;
-
 %%
 int main(){
 
 	yyparse();
 	printf("Programa OK.\n");
-	printf("Tabela hash.\n");
-	mostrar_tabela(&T);
+	//printf("Tabela hash.\n");
+	//mostrar_tabela(&T);
 }
